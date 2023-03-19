@@ -1,5 +1,7 @@
 name: Python publish wheels to Pypi
 
+# Example from https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml
+
 # publish when a GitHub Release is created
 on:
   push:
@@ -10,16 +12,16 @@ on:
 
 
 jobs:
-  build:
+
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: ['ubuntu-latest', 'windows-latest', 'macos-latest']
-
-    runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: bash
-
     steps:
     - uses: actions/checkout@v2
     - name: Build wheels
