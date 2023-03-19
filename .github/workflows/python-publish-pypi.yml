@@ -44,7 +44,7 @@ jobs:
       - name: Build sdist
         run: pipx run build --sdist
         with:
-        package-dir: python
+          package-dir: python
 
       - uses: actions/upload-artifact@v3
         with:
