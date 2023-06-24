@@ -33,7 +33,7 @@ class SedonaJvmLib(Enum):
     LineStringRDD = "org.apache.sedona.core.spatialRDD.LineStringRDD"
     RectangleRDD = "org.apache.sedona.core.spatialRDD.RectangleRDD"
     SpatialRDD = "org.apache.sedona.core.spatialRDD.SpatialRDD"
-    FileDataSplitter = "org.apache.sedona.core.enums.FileDataSplitter"
+    FileDataSplitter = "org.apache.sedona.common.enums.FileDataSplitter"
     GeoJsonReader = "org.apache.sedona.core.formatMapper.GeoJsonReader"
     ShapeFileReader = "org.apache.sedona.core.formatMapper.shapefileParser.ShapefileReader"
     SedonaSQLRegistrator = "org.apache.sedona.sql.utils.SedonaSQLRegistrator"
@@ -52,6 +52,7 @@ class SedonaJvmLib(Enum):
     st_functions = "org.apache.spark.sql.sedona_sql.expressions.st_functions"
     st_predicates = "org.apache.spark.sql.sedona_sql.expressions.st_predicates"
     st_aggregates = "org.apache.spark.sql.sedona_sql.expressions.st_aggregates"
+    SedonaContext = "org.apache.sedona.spark.SedonaContext"
 
     @classmethod
     def from_str(cls, geo_lib: str) -> 'SedonaJvmLib':

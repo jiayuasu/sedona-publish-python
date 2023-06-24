@@ -27,6 +27,7 @@ __all__ = [
     "ST_3DDistance",
     "ST_AddPoint",
     "ST_Area",
+    "ST_AreaSpheroid",
     "ST_AsBinary",
     "ST_AsEWKB",
     "ST_AsEWKT",
@@ -45,6 +46,8 @@ __all__ = [
     "ST_ConvexHull",
     "ST_Difference",
     "ST_Distance",
+    "ST_DistanceSphere",
+    "ST_DistanceSpheroid",
     "ST_Dump",
     "ST_DumpPoints",
     "ST_EndPoint",
@@ -53,6 +56,7 @@ __all__ = [
     "ST_FlipCoordinates",
     "ST_Force_2D",
     "ST_GeoHash",
+    "ST_GeometricMedian",
     "ST_GeometryN",
     "ST_GeometryType",
     "ST_InteriorRingN",
@@ -63,6 +67,7 @@ __all__ = [
     "ST_IsSimple",
     "ST_IsValid",
     "ST_Length",
+    "ST_LengthSpheroid",
     "ST_LineFromMultiPoint",
     "ST_LineInterpolatePoint",
     "ST_LineMerge",
@@ -103,6 +108,10 @@ __all__ = [
     "ST_Z",
     "ST_ZMax",
     "ST_ZMin",
+    "ST_NumPoints",
+    "ST_Force3D",
+    "ST_NRings",
+    "ST_Translate"
 ]
 
 
@@ -151,6 +160,17 @@ def ST_Area(geometry: ColumnOrName) -> Column:
     :rtype: Column
     """
     return _call_st_function("ST_Area", geometry)
+
+@validate_argument_types
+def ST_AreaSpheroid(geometry: ColumnOrName) -> Column:
+    """Calculate the area of a geometry using WGS84 spheroid.
+
+    :param geometry: Geometry column to calculate the area of.
+    :type geometry: ColumnOrName
+    :return: Area of geometry as a double column. Unit is meter.
+    :rtype: Column
+    """
+    return _call_st_function("ST_AreaSpheroid", geometry)
 
 
 @validate_argument_types
@@ -394,6 +414,33 @@ def ST_Distance(a: ColumnOrName, b: ColumnOrName) -> Column:
     """
     return _call_st_function("ST_Distance", (a, b))
 
+@validate_argument_types
+def ST_DistanceSpheroid(a: ColumnOrName, b: ColumnOrName) -> Column:
+    """Calculate the geodesic distance between two geometry columns using WGS84 spheroid.
+
+    :param a: Geometry column to use in the calculation.
+    :type a: ColumnOrName
+    :param b: Other geometry column to use in the calculation.
+    :type b: ColumnOrName
+    :return: Two-dimensional geodesic distance between a and b as a double column. Unit is meter.
+    :rtype: Column
+    """
+    return _call_st_function("ST_DistanceSpheroid", (a, b))
+
+@validate_argument_types
+def ST_DistanceSphere(a: ColumnOrName, b: ColumnOrName, radius: Optional[Union[ColumnOrName, float]] = 6371008.0) -> Column:
+    """Calculate the haversine/great-circle distance between two geometry columns using a given radius.
+
+    :param a: Geometry column to use in the calculation.
+    :type a: ColumnOrName
+    :param b: Other geometry column to use in the calculation.
+    :type b: ColumnOrName
+    :param radius: Radius of the sphere, defaults to 6371008.0
+    :type radius: Optional[Union[ColumnOrName, float]], optional
+    :return: Two-dimensional haversine/great-circle distance between a and b as a double column. Unit is meter.
+    :rtype: Column
+    """
+    return _call_st_function("ST_DistanceSphere", (a, b, radius))
 
 @validate_argument_types
 def ST_Dump(geometry: ColumnOrName) -> Column:
@@ -495,6 +542,31 @@ def ST_GeoHash(geometry: ColumnOrName, precision: Union[ColumnOrName, int]) -> C
     :rtype: Column
     """
     return _call_st_function("ST_GeoHash", (geometry, precision))
+
+@validate_argument_types
+def ST_GeometricMedian(geometry: ColumnOrName, tolerance: Optional[Union[ColumnOrName, float]] = 1e-6,
+                       max_iter: Optional[Union[ColumnOrName, int]] = 1000,
+                       fail_if_not_converged: Optional[Union[ColumnOrName, bool]] = False) -> Column:
+    """Computes the approximate geometric median of a MultiPoint geometry using the Weiszfeld algorithm.
+    The geometric median provides a centrality measure that is less sensitive to outlier points than the centroid.
+    The algorithm will iterate until the distance change between successive iterations is less than the
+    supplied `tolerance` parameter. If this condition has not been met after `maxIter` iterations, the function will
+    produce an error and exit, unless `failIfNotConverged` is set to `false`. If a `tolerance` value is not provided,
+    a default `tolerance` value is `1e-6`.
+
+    :param geometry: MultiPoint or Point geometry.
+    :type geometry: ColumnOrName
+    :param tolerance: Distance limit change between successive iterations, defaults to 1e-6.
+    :type tolerance: Optional[Union[ColumnOrName, float]], optional
+    :param max_iter: Max number of iterations, defaults to 1000.
+    :type max_iter: Optional[Union[ColumnOrName, int]], optional
+    :param fail_if_not_converged: Generate error if not converged within given tolerance and number of iterations, defaults to False
+    :type fail_if_not_converged: Optional[Union[ColumnOrName, boolean]], optional
+    :return: Point geometry column.
+    :rtype: Column
+    """
+    args = (geometry, tolerance, max_iter, fail_if_not_converged)
+    return _call_st_function("ST_GeometricMedian", args)
 
 
 @validate_argument_types
@@ -628,6 +700,16 @@ def ST_Length(geometry: ColumnOrName) -> Column:
     """
     return _call_st_function("ST_Length", geometry)
 
+@validate_argument_types
+def ST_LengthSpheroid(geometry: ColumnOrName) -> Column:
+    """Calculate the perimeter of a geometry using WGS84 spheroid.
+
+    :param geometry: Geometry column to calculate length for.
+    :type geometry: ColumnOrName
+    :return: perimeter of geometry as a double column. Unit is meter.
+    :rtype: Column
+    """
+    return _call_st_function("ST_LengthSpheroid", geometry)
 
 @validate_argument_types
 def ST_LineFromMultiPoint(geometry: ColumnOrName) -> Column:
@@ -1153,3 +1235,45 @@ def ST_ZMin(geometry: ColumnOrName) -> Column:
     :rtype: Column
     """
     return _call_st_function("ST_ZMin", geometry)
+@validate_argument_types
+def ST_NumPoints(geometry: ColumnOrName) -> Column:
+    """Return the number of points in a LineString
+    :param geometry: Geometry column to get number of points from.
+    :type geometry: ColumnOrName
+    :return: Number of points in a LineString as an integer column
+    :rtype: Column
+    """
+    return _call_st_function("ST_NumPoints", geometry)
+
+@validate_argument_types
+def ST_Force3D(geometry: ColumnOrName, zValue: Optional[Union[ColumnOrName, float]] = 0.0) -> Column:
+    """
+    Return a geometry with a 3D coordinate of value 'zValue' forced upon it. No change happens if the geometry is already 3D
+    :param zValue: Optional value of z coordinate to be potentially added, default value is 0.0
+    :param geometry: Geometry column to make 3D
+    :return: 3D geometry with either already present z coordinate if any, or zcoordinate with given zValue
+    """
+    args = (geometry, zValue)
+    return _call_st_function("ST_Force3D", args)
+
+@validate_argument_types
+def ST_NRings(geometry: ColumnOrName) -> Column:
+    """
+    Returns the total number of rings in a Polygon or MultiPolygon. Compared to ST_NumInteriorRings, ST_NRings takes exterior rings into account as well.
+    :param geometry: Geometry column to calculate rings for
+    :return: Number of exterior rings + interior rings (if any) for the given Polygon or MultiPolygon
+    """
+    return _call_st_function("ST_NRings", geometry)
+@validate_argument_types
+def ST_Translate(geometry: ColumnOrName, deltaX: Union[ColumnOrName, float], deltaY: Union[ColumnOrName, float], deltaZ: Optional[Union[ColumnOrName, float]] = 0.0) -> Column:
+    """
+    Returns the geometry with x, y and z (if present) coordinates offset by given deltaX, deltaY, and deltaZ values.
+    :param geometry: Geometry column whose coordinates are to be translated.
+    :param deltaX: value by which to offset X coordinate.
+    :param deltaY: value by which to offset Y coordinate.
+    :param deltaZ: value by which to offset Z coordinate (if present).
+    :return: The input geometry with its coordinates translated.
+    """
+    args = (geometry, deltaX, deltaY, deltaZ)
+    return _call_st_function("ST_Translate", args)
+
