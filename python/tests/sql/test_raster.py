@@ -15,4 +15,16 @@
 #  specific language governing permissions and limitations
 #  under the License.
 
-version = "1.5.0"
+import pytest
+from tests.test_base import TestBase
+
+
+class TestRaster(TestBase):
+
+    def test_raster_df_repr(self):
+        """DataFrame containing raster columns should be represented without
+        exception.
+
+        """
+        raster_df = self.spark.sql("SELECT RS_MakeEmptyRaster(1, 10, 10, 0, 0, 1) rast")
+        assert "rast: udt" in repr(raster_df)
