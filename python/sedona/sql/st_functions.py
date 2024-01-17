@@ -73,10 +73,12 @@ __all__ = [
     "ST_IsRing",
     "ST_IsSimple",
     "ST_IsValid",
+    "ST_IsValidReason",
     "ST_Length",
     "ST_LengthSpheroid",
     "ST_LineFromMultiPoint",
     "ST_LineInterpolatePoint",
+    "ST_LineLocatePoint",
     "ST_LineMerge",
     "ST_LineSubstring",
     "ST_MakeLine",
@@ -315,7 +317,7 @@ def ST_Boundary(geometry: ColumnOrName) -> Column:
 
 
 @validate_argument_types
-def ST_Buffer(geometry: ColumnOrName, buffer: ColumnOrNameOrNumber) -> Column:
+def ST_Buffer(geometry: ColumnOrName, buffer: ColumnOrNameOrNumber, parameters: Optional[Union[ColumnOrName, str]] = None) -> Column:
     """Calculate a geometry that represents all points whose distance from the
     input geometry column is equal to or less than a given amount.
 
@@ -326,7 +328,12 @@ def ST_Buffer(geometry: ColumnOrName, buffer: ColumnOrNameOrNumber) -> Column:
     :return: Buffered geometry as a geometry column.
     :rtype: Column
     """
-    return _call_st_function("ST_Buffer", (geometry, buffer))
+    if parameters is None:
+        args = (geometry, buffer)
+    else:
+        args = (geometry, buffer, parameters)
+
+    return _call_st_function("ST_Buffer", args)
 
 
 @validate_argument_types
@@ -787,16 +794,35 @@ def ST_IsSimple(geometry: ColumnOrName) -> Column:
 
 
 @validate_argument_types
-def ST_IsValid(geometry: ColumnOrName) -> Column:
+def ST_IsValid(geometry: ColumnOrName, flag: Optional[Union[ColumnOrName, int]] = None) -> Column:
     """Check if a geometry is well formed.
 
     :param geometry: Geometry column to check in.
     :type geometry: ColumnOrName
+    :param flag: Optional flag to modify behavior of the validity check.
+    :type flag: Optional[Union[ColumnOrName, int]]
     :return: True if geometry is well formed and False otherwise as a boolean column.
     :rtype: Column
     """
-    return _call_st_function("ST_IsValid", geometry)
 
+    args = (geometry,) if flag is None else (geometry, flag)
+    return _call_st_function("ST_IsValid", args)
+
+@validate_argument_types
+def ST_IsValidReason(geometry: ColumnOrName, flag: Optional[Union[ColumnOrName, int]] = None) -> Column:
+    """
+    Provides a text description of why a geometry is not valid or states that it is valid.
+    An optional flag parameter can be provided for additional options.
+
+    :param geometry: Geometry column to validate.
+    :type geometry: ColumnOrName
+    :param flag: Optional flag to modify behavior of the validity check.
+    :type flag: Optional[Union[ColumnOrName, int]]
+    :return: Description of validity as a string column.
+    :rtype: Column
+    """
+    args = (geometry,) if flag is None else (geometry, flag)
+    return _call_st_function("ST_IsValidReason", args)
 
 @validate_argument_types
 def ST_Length(geometry: ColumnOrName) -> Column:
@@ -844,6 +870,19 @@ def ST_LineInterpolatePoint(geometry: ColumnOrName, fraction: ColumnOrNameOrNumb
     :rtype: Column
     """
     return _call_st_function("ST_LineInterpolatePoint", (geometry, fraction))
+
+@validate_argument_types
+def ST_LineLocatePoint(linestring: ColumnOrName, point: ColumnOrName) -> Column:
+    """Returns a double between 0 and 1 representing the location of the closest point on a LineString to the given Point, as a fraction of 2d line length.
+
+    :param linestring: Linestring geometry column to locate point on.
+    :type geometry: ColumnOrName
+    :param point: Point geometry column.
+    :type geometry: ColumnOrNameOrNumber
+    :return: double between 0 and 1 as a fraction of 2d line length.
+    :rtype: Column
+    """
+    return _call_st_function("ST_LineLocatePoint", (linestring, point))
 
 
 @validate_argument_types
@@ -1236,7 +1275,7 @@ def ST_SymDifference(a: ColumnOrName, b: ColumnOrName) -> Column:
 
 
 @validate_argument_types
-def ST_Transform(geometry: ColumnOrName, source_crs: ColumnOrName, target_crs: ColumnOrName, disable_error: Optional[Union[ColumnOrName, bool]] = None) -> Column:
+def ST_Transform(geometry: ColumnOrName, source_crs: ColumnOrName, target_crs: Optional[Union[ColumnOrName, str]] = None, disable_error: Optional[Union[ColumnOrName, bool]] = None) -> Column:
     """Convert a geometry from one coordinate system to another coordinate system.
 
     :param geometry: Geometry column to convert.
@@ -1250,7 +1289,18 @@ def ST_Transform(geometry: ColumnOrName, source_crs: ColumnOrName, target_crs: C
     :return: Geometry converted to the target coordinate system as an
     :rtype: Column
     """
-    args = (geometry, source_crs, target_crs) if disable_error is None else (geometry, source_crs, target_crs, disable_error)
+
+    if disable_error is None:
+        args = (geometry, source_crs, target_crs)
+
+        # When 2 arguments are passed to the function.
+        # From python's perspective ST_Transform(geometry, source_crs) is provided
+        # that's why have to check if the target_crs is empty.
+        # the source_crs acts as target_crs when calling the function
+        if target_crs is None:
+            args = (geometry, source_crs)
+    else:
+        args = (geometry, source_crs, target_crs, disable_error)
     return _call_st_function("ST_Transform", args)
 
 
@@ -1417,13 +1467,13 @@ def ST_Translate(geometry: ColumnOrName, deltaX: Union[ColumnOrName, float], del
 @validate_argument_types
 def ST_VoronoiPolygons(geometry: ColumnOrName, tolerance: Optional[Union[ColumnOrName, float]] = 0.0, extendTo: Optional[ColumnOrName] = None) -> Column:
     """
-    ST_VoronoiPolygons computes a two-dimensional Voronoi diagram from the vertices of the supplied geometry. 
-    The result is a GeometryCollection of Polygons that covers an envelope larger than the extent of the input vertices. 
+    ST_VoronoiPolygons computes a two-dimensional Voronoi diagram from the vertices of the supplied geometry.
+    The result is a GeometryCollection of Polygons that covers an envelope larger than the extent of the input vertices.
     Returns null if input geometry is null. Returns an empty geometry collection if the input geometry contains only one vertex. Returns an empty geometry collection if the extend_to envelope has zero area.
     :param geometry: Geometry column whose coordinates are to be built from.
-    :param tolerance: The distance within which vertices will be considered equivalent. 
+    :param tolerance: The distance within which vertices will be considered equivalent.
     Robustness of the algorithm can be improved by supplying a nonzero tolerance distance. (default = 0.0)
-    :param extendTo: If a geometry is supplied as the "extend_to" parameter, the diagram will be extended to cover the envelope of the "extend_to" geometry, unless that envelope is smaller than the default envelope 
+    :param extendTo: If a geometry is supplied as the "extend_to" parameter, the diagram will be extended to cover the envelope of the "extend_to" geometry, unless that envelope is smaller than the default envelope
     (default = NULL, default envelope is boundingbox of input geometry extended by about 50% in each direction).
     :return: The two-dimensional Voronoi diagram geometry.
     """
