@@ -15,4 +15,17 @@
 #  specific language governing permissions and limitations
 #  under the License.
 
-version = "1.5.1"
+from IPython.display import display, HTML
+from tests.test_base import TestBase
+from sedona.raster_utils.SedonaUtils import SedonaUtils
+from tests import world_map_raster_input_location
+
+
+class TestSedonaUtils(TestBase):
+    def test_display_image(self):
+        raster_bin_df = self.spark.read.format('binaryFile').load(world_map_raster_input_location)
+        raster_bin_df.createOrReplaceTempView('raster_binary_table')
+        raster_df = self.spark.sql('SELECT RS_FromGeotiff(content) as raster from raster_binary_table')
+        raster_image_df = raster_df.selectExpr('RS_AsImage(raster) as rast_img')
+        html_call = SedonaUtils.display_image(raster_image_df)
+        assert html_call is None  # just test that this function was called and returned no output
