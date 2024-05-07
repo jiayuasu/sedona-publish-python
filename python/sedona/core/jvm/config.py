@@ -18,7 +18,7 @@
 import logging
 import os
 from re import findall
-from typing import Any, Optional, Tuple
+from typing import Optional, Tuple
 
 from py4j.protocol import Py4JJavaError
 from pyspark.sql import SparkSession
@@ -89,13 +89,11 @@ def deprecated(reason):
 
             @functools.wraps(func1)
             def new_func1(*args, **kwargs):
-                warnings.simplefilter('always', DeprecationWarning)
                 warnings.warn(
                     fmt1.format(name=func1.__name__, reason=reason),
                     category=DeprecationWarning,
                     stacklevel=2
                 )
-                warnings.simplefilter('default', DeprecationWarning)
                 return func1(*args, **kwargs)
 
             return new_func1
@@ -121,13 +119,11 @@ def deprecated(reason):
 
         @functools.wraps(func2)
         def new_func2(*args, **kwargs):
-            warnings.simplefilter('always', DeprecationWarning)
             warnings.warn(
                 fmt2.format(name=func2.__name__),
                 category=DeprecationWarning,
                 stacklevel=2
             )
-            warnings.simplefilter('default', DeprecationWarning)
             return func2(*args, **kwargs)
 
         return new_func2
@@ -191,10 +187,9 @@ class SparkJars:
 
         try:
             used_jar_files = java_spark_conf.get(value)
-        except Py4JJavaError as java_error:
-            error_message = "Failed to get the value of {} from SparkConf: {}".format(
-                value, java_error
-            )
+        except Py4JJavaError:
+            error_message = "Didn't find the value of {} from SparkConf".format(value)
+            logging.info(error_message)
 
         return used_jar_files, error_message
 
@@ -204,7 +199,7 @@ class SedonaMeta:
     def get_version(cls, spark_jars: str) -> Optional[str]:
         # Find Spark version, Scala version and Sedona version.
         versions = findall(
-            r"sedona-(?:python-adapter|spark-shaded)-([^,\n]{3})_([^,\n]{4})-([^,\n]{5})",
+            r"sedona-(?:python-adapter|spark-shaded|spark)-([^,\n]{3})_([^,\n]{4})-([^,\n]{5})",
             spark_jars,
         )
         print(versions)
