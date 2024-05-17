@@ -15,10 +15,25 @@
 #  specific language governing permissions and limitations
 #  under the License.
 
-import shapely
+from typing import List, Any
+import numpy as np
 
 
-if shapely.__version__.startswith('2.'):
-    from .shapely2.envelope import Envelope
-else:
-    from .shapely1.envelope import Envelope
+class DataBuffer:
+    TYPE_BYTE = 0
+    TYPE_USHORT = 1
+    TYPE_SHORT = 2
+    TYPE_INT = 3
+    TYPE_FLOAT = 4
+    TYPE_DOUBLE = 5
+
+    data_type: int
+    bank_data: List[np.ndarray]
+    size: int
+    offsets: List[int]
+
+    def __init__(self, data_type: int, bank_data: List[np.ndarray], size: int, offsets: List[int]):
+        self.data_type = data_type
+        self.bank_data = bank_data
+        self.size = size
+        self.offsets = offsets

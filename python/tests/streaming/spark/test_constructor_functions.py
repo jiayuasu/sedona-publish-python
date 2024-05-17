@@ -47,6 +47,11 @@ SEDONA_LISTED_SQL_FUNCTIONS = [
      .with_expected_result(3.1214451522580533)
      .with_transform("ST_AREA")),
     (SuiteContainer.empty()
+     .with_function_name("ST_Buffer")
+     .with_arguments(["ST_GeomFromText('POINT (21 52)')", "100000", "true"])
+     .with_expected_result(4.088135158017784)
+     .with_transform("ST_AREA")),
+    (SuiteContainer.empty()
      .with_function_name("ST_Distance")
      .with_arguments(["ST_GeomFromText('POINT (21 52)')", "ST_GeomFromText('POINT (21 53)')"])
      .with_expected_result(1.0)),
@@ -297,7 +302,16 @@ SEDONA_LISTED_SQL_FUNCTIONS = [
         "ST_GeomFromText('POINT(21.427834 52.042576573)')",
         "ST_GeomFromText('POINT(45.342524 56.342354355)')"])
      .with_expected_result(0.0)
-     .with_transform("ST_LENGTH"))
+     .with_transform("ST_LENGTH")),
+    (SuiteContainer.empty()
+     .with_function_name("ST_BestSRID")
+     .with_arguments(["ST_GeomFromText('POINT (-177 60)')"])
+     .with_expected_result(32601)),
+    (SuiteContainer.empty()
+     .with_function_name("ST_ShiftLongitude")
+     .with_arguments(["ST_GeomFromText('POINT (-177 60)')"])
+     .with_expected_result("POINT (183 60)")
+     .with_transform("ST_AsText"))
 ]
 
 

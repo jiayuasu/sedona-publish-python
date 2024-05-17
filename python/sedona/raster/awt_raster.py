@@ -15,10 +15,27 @@
 #  specific language governing permissions and limitations
 #  under the License.
 
-import shapely
+from .data_buffer import DataBuffer
+from .sample_model import SampleModel
 
 
-if shapely.__version__.startswith('2.'):
-    from .shapely2.envelope import Envelope
-else:
-    from .shapely1.envelope import Envelope
+class AWTRaster:
+    """Raster data structure of Java AWT Raster used by GeoTools GridCoverage2D.
+
+    """
+    min_x: int
+    min_y: int
+    width: int
+    height: int
+    sample_model: SampleModel
+    data_buffer: DataBuffer
+
+    def __init__(self, min_x, min_y, width, height, sample_model: SampleModel, data_buffer: DataBuffer):
+        if sample_model.width != width or sample_model.height != height:
+            raise RuntimeError("Size of the image does not match with the sample model")
+        self.min_x = min_x
+        self.min_y = min_y
+        self.width = width
+        self.height = height
+        self.sample_model = sample_model
+        self.data_buffer = data_buffer

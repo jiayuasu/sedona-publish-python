@@ -201,6 +201,28 @@ def ST_Azimuth(point_a: ColumnOrName, point_b: ColumnOrName) -> Column:
 
 
 @validate_argument_types
+def ST_BestSRID(geometry: ColumnOrName) -> Column:
+    """Estimates the best SRID (EPSG code) of the geometry.
+
+    :param geometry: Geometry column to calculate the boundary for.
+    :type geometry: ColumnOrName
+    :return: SRID as an Integer
+    :rtype: Column
+    """
+    return _call_st_function("ST_BestSRID", geometry)
+
+@validate_argument_types
+def ST_ShiftLongitude(geometry: ColumnOrName) -> Column:
+    """Shifts longitudes between -180..0 degrees to 180..360 degrees and vice versa.
+
+    :param geometry: Geometry column.
+    :type geometry: ColumnOrName
+    :return: Shifted geometry
+    :rtype: Column
+    """
+    return _call_st_function("ST_ShiftLongitude", geometry)
+
+@validate_argument_types
 def ST_Boundary(geometry: ColumnOrName) -> Column:
     """Calculate the closure of the combinatorial boundary of a geometry column.
 
@@ -213,7 +235,7 @@ def ST_Boundary(geometry: ColumnOrName) -> Column:
 
 
 @validate_argument_types
-def ST_Buffer(geometry: ColumnOrName, buffer: ColumnOrNameOrNumber, parameters: Optional[Union[ColumnOrName, str]] = None) -> Column:
+def ST_Buffer(geometry: ColumnOrName, buffer: ColumnOrNameOrNumber, useSpheroid: Optional[Union[ColumnOrName, bool]] = None, parameters: Optional[Union[ColumnOrName, str]] = None) -> Column:
     """Calculate a geometry that represents all points whose distance from the
     input geometry column is equal to or less than a given amount.
 
@@ -224,10 +246,12 @@ def ST_Buffer(geometry: ColumnOrName, buffer: ColumnOrNameOrNumber, parameters: 
     :return: Buffered geometry as a geometry column.
     :rtype: Column
     """
-    if parameters is None:
+    if parameters is None and useSpheroid is None:
         args = (geometry, buffer)
+    elif parameters is None:
+        args = (geometry, buffer, useSpheroid)
     else:
-        args = (geometry, buffer, parameters)
+        args = (geometry, buffer, useSpheroid, parameters)
 
     return _call_st_function("ST_Buffer", args)
 
@@ -329,6 +353,17 @@ def ST_ConvexHull(geometry: ColumnOrName) -> Column:
     :rtype: Column
     """
     return _call_st_function("ST_ConvexHull", geometry)
+
+@validate_argument_types
+def ST_CrossesDateLine(a: ColumnOrName) -> Column:
+    """Check whether geometry a crosses the International Date Line.
+
+    :param a: Geometry to check crossing with.
+    :type a: ColumnOrName
+    :return: True if geometry a cross the dateline.
+    :rtype: Column
+    """
+    return _call_st_function("ST_CrossesDateLine", (a))
 
 @validate_argument_types
 def ST_Dimension(geometry: ColumnOrName):
@@ -666,6 +701,19 @@ def ST_IsEmpty(geometry: ColumnOrName) -> Column:
 
 
 @validate_argument_types
+def ST_IsPolygonCW(geometry: ColumnOrName) -> Column:
+    """Check if the Polygon or MultiPolygon use a clockwise orientation for exterior ring and counter-clockwise
+    orientation for interior ring.
+
+    :param geometry: Geometry column to check.
+    :type geometry: ColumnOrName
+    :return: True if the geometry is empty and False otherwise as a boolean column.
+    :rtype: Column
+    """
+    return _call_st_function("ST_IsPolygonCW", geometry)
+
+
+@validate_argument_types
 def ST_IsRing(line_string: ColumnOrName) -> Column:
     """Check if a linestring geometry is both closed and simple.
 
@@ -836,6 +884,17 @@ def ST_Polygon(line_string: ColumnOrName, srid: ColumnOrNameOrNumber) -> Column:
     :rtype: Column
     """
     return _call_st_function("ST_Polygon", (line_string, srid))
+
+@validate_argument_types
+def ST_Polygonize(geometry: ColumnOrName) -> Column:
+    """Generates a GeometryCollection composed of polygons that are formed from the linework of a set of input geometries.
+
+    :param geometry: input geometry of type GeometryCollection
+    :type geometry: ColumnOrName
+    :return: GeometryCollection geometry column created from the input geometry.
+    :rtype: Column
+    """
+    return _call_st_function("ST_Polygonize", (geometry))
 
 @validate_argument_types
 def ST_MakePolygon(line_string: ColumnOrName, holes: Optional[ColumnOrName] = None) -> Column:
@@ -1047,6 +1106,18 @@ def ST_S2CellIDs(geometry: ColumnOrName, level: Union[ColumnOrName, int]) -> Col
 
 
 @validate_argument_types
+def ST_S2ToGeom(cells: Union[ColumnOrName, list]) -> Column:
+    """Create a polygon from the S2 cells
+
+    :param cells: S2 cells
+    :type cells: List[long]
+    :return: the Polygon for all S2 cells
+    :rtype: Geometry
+    """
+    return _call_st_function("ST_S2ToGeom", cells)
+
+
+@validate_argument_types
 def ST_SetPoint(line_string: ColumnOrName, index: Union[ColumnOrName, int], point: ColumnOrName) -> Column:
     """Replace a point in a linestring.
 
@@ -1074,6 +1145,39 @@ def ST_SetSRID(geometry: ColumnOrName, srid: Union[ColumnOrName, int]) -> Column
     :rtype: Column
     """
     return _call_st_function("ST_SetSRID", (geometry, srid))
+
+@validate_argument_types
+def ST_Snap(input: ColumnOrName, reference: ColumnOrName, tolerance: Union[ColumnOrName, float]) -> Column:
+    """Snaps input Geometry to reference Geometry controlled by distance tolerance.
+
+    :param input: Geometry
+    :param reference: Geometry to snap to
+    :param tolerance: Distance to control snapping
+    :return: Snapped Geometry
+    """
+    return _call_st_function("ST_Snap", (input, reference, tolerance))
+
+
+@validate_argument_types
+def ST_IsPolygonCCW(geometry: ColumnOrName) -> Column:
+    """Check if the Polygon or MultiPolygon use a counter-clockwise orientation for exterior ring and clockwise
+    orientation for interior ring.
+    :param geometry: Geometry column to check.
+    :type geometry: ColumnOrName
+    :return: True if the geometry is empty and False otherwise as a boolean column.
+    :rtype: Column
+    """
+    return _call_st_function("ST_IsPolygonCCW", geometry)
+
+
+@validate_argument_types
+def ST_ForcePolygonCCW(geometry: ColumnOrName) -> Column:
+    """
+    Returns a geometry with counter-clockwise oriented exterior ring and clockwise oriented interior rings
+    :param geometry: Geometry column to change orientation
+    :return: counter-clockwise oriented geometry
+    """
+    return _call_st_function("ST_ForcePolygonCCW", geometry)
 
 
 @validate_argument_types
@@ -1201,7 +1305,7 @@ def ST_Transform(geometry: ColumnOrName, source_crs: ColumnOrName, target_crs: O
 
 
 @validate_argument_types
-def ST_Union(a: ColumnOrName, b: ColumnOrName) -> Column:
+def ST_Union(a: ColumnOrName, b: Optional[ColumnOrName] = None) -> Column:
     """Calculate the union of two geometries.
 
     :param a: One geometry column to use.
@@ -1211,7 +1315,13 @@ def ST_Union(a: ColumnOrName, b: ColumnOrName) -> Column:
     :return: Geometry representing the union of a and b as a geometry column.
     :rtype: Column
     """
-    return _call_st_function("ST_Union", (a, b))
+
+    if b is None:
+        args = a
+    else:
+        args = (a, b)
+
+    return _call_st_function("ST_Union", args)
 
 
 @validate_argument_types
@@ -1338,6 +1448,15 @@ def ST_Force3D(geometry: ColumnOrName, zValue: Optional[Union[ColumnOrName, floa
     """
     args = (geometry, zValue)
     return _call_st_function("ST_Force3D", args)
+
+@validate_argument_types
+def ST_ForcePolygonCW(geometry: ColumnOrName) -> Column:
+    """
+    Returns
+    :param geometry: Geometry column to change orientation
+    :return: Clockwise oriented geometry
+    """
+    return _call_st_function("ST_ForcePolygonCW", geometry)
 
 @validate_argument_types
 def ST_NRings(geometry: ColumnOrName) -> Column:
