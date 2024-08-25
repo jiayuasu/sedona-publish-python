@@ -25,11 +25,6 @@ from typing import Union, Optional
 from sedona.sql.dataframe_api import ColumnOrName, call_sedona_function, validate_argument_types
 
 
-# Automatically populate __all__
-__all__ = [name for name, obj in inspect.getmembers(sys.modules[__name__])
-           if inspect.isfunction(obj)]
-
-
 _call_predicate_function = partial(call_sedona_function, "st_predicates")
 
 
@@ -143,6 +138,36 @@ def ST_Touches(a: ColumnOrName, b: ColumnOrName) -> Column:
     """
     return _call_predicate_function("ST_Touches", (a, b))
 
+@validate_argument_types
+def ST_Relate(a: ColumnOrName, b: ColumnOrName, intersectionMatrix: Optional[ColumnOrName] = None) -> Column:
+    """Check whether two geometries are related to each other.
+
+    :param a: One geometry column to check.
+    :type a: ColumnOrName
+    :param b: Other geometry column to check.
+    :type b: ColumnOrName
+    :param intersectionMatrix: intersectionMatrix column to check
+    :type intersectionMatrix: ColumnOrName
+    :return: True if a and b touch and False otherwise, as a boolean column.
+    :rtype: Column
+    """
+    args = (a, b) if intersectionMatrix is None else (a, b, intersectionMatrix)
+
+    return _call_predicate_function("ST_Relate", args)
+
+@validate_argument_types
+def ST_RelateMatch(matrix1: ColumnOrName, matrix2: ColumnOrName) -> Column:
+    """Check whether two DE-9IM are related to each other.
+
+    :param matrix1: One geometry column to check.
+    :type matrix1: ColumnOrName
+    :param matrix2: Other geometry column to check.
+    :type matrix2: ColumnOrName
+    :return: True if a and b touch and False otherwise, as a boolean column.
+    :rtype: Column
+    """
+    return _call_predicate_function("ST_RelateMatch", (matrix1, matrix2))
+
 
 @validate_argument_types
 def ST_Within(a: ColumnOrName, b: ColumnOrName) -> Column:
@@ -197,3 +222,8 @@ def ST_DWithin(a: ColumnOrName, b: ColumnOrName, distance: Union[ColumnOrName, f
     """
     args = (a, b, distance, use_sphere) if use_sphere is not None else (a, b, distance,)
     return _call_predicate_function("ST_DWithin", args)
+
+
+# Automatically populate __all__
+__all__ = [name for name, obj in inspect.getmembers(sys.modules[__name__])
+           if inspect.isfunction(obj)]
