@@ -44,11 +44,15 @@ test_configurations = [
     (stc.ST_GeomFromKML, ("kml",), "constructor", "", "LINESTRING (-71.16 42.26, -71.17 42.26)"),
     (stc.ST_GeomFromText, ("wkt",), "linestring_wkt", "", "LINESTRING (1 2, 3 4)"),
     (stc.ST_GeomFromText, ("wkt",4326), "linestring_wkt", "", "LINESTRING (1 2, 3 4)"),
-    (stc.ST_GeomFromWKB, ("wkb",), "constructor", "ST_ReducePrecision(geom, 2)", "LINESTRING (-2.1 -0.35, -1.5 -0.67)"),
+    (stc.ST_GeometryFromText, ("wkt", 4326), "linestring_wkt", "", "LINESTRING (1 2, 3 4)"),
+    (stc.ST_GeomFromWKB, ("wkbLine",), "constructor", "ST_ReducePrecision(geom, 2)", "LINESTRING (-2.1 -0.35, -1.5 -0.67)"),
+    (stc.ST_GeomFromEWKB, ("wkbLine",), "constructor", "ST_ReducePrecision(geom, 2)", "LINESTRING (-2.1 -0.35, -1.5 -0.67)"),
     (stc.ST_GeomFromWKT, ("wkt",), "linestring_wkt", "", "LINESTRING (1 2, 3 4)"),
     (stc.ST_GeomFromWKT, ("wkt",4326), "linestring_wkt", "", "LINESTRING (1 2, 3 4)"),
     (stc.ST_GeomFromEWKT, ("ewkt",), "linestring_ewkt", "", "LINESTRING (1 2, 3 4)"),
     (stc.ST_LineFromText, ("wkt",), "linestring_wkt", "", "LINESTRING (1 2, 3 4)"),
+    (stc.ST_LineFromWKB, ("wkbLine",), "constructor", "ST_ReducePrecision(geom, 2)", "LINESTRING (-2.1 -0.35, -1.5 -0.67)"),
+    (stc.ST_LinestringFromWKB, ("wkbLine",), "constructor", "ST_ReducePrecision(geom, 2)", "LINESTRING (-2.1 -0.35, -1.5 -0.67)"),
     (stc.ST_LineStringFromText, ("multiple_point", lambda: f.lit(',')), "constructor", "", "LINESTRING (0 0, 1 0, 1 1, 0 0)"),
     (stc.ST_Point, ("x", "y"), "constructor", "", "POINT (0 1)"),
     (stc.ST_PointZ, ("x", "y", "z", 4326), "constructor", "", "POINT Z (0 1 2)"),
@@ -57,17 +61,24 @@ test_configurations = [
     (stc.ST_MPolyFromText, ("mpoly", 4326), "constructor", "" , "MULTIPOLYGON (((0 0, 20 0, 20 20, 0 20, 0 0), (5 5, 5 7, 7 7, 7 5, 5 5)))"),
     (stc.ST_MLineFromText, ("mline", ), "constructor", "" , "MULTILINESTRING ((1 2, 3 4), (4 5, 6 7))"),
     (stc.ST_MLineFromText, ("mline", 4326), "constructor", "" , "MULTILINESTRING ((1 2, 3 4), (4 5, 6 7))"),
+    (stc.ST_MPointFromText, ("mpoint", ), "constructor", "" , "MULTIPOINT (10 10, 20 20, 30 30)"),
+    (stc.ST_MPointFromText, ("mpoint", 4326), "constructor", "" , "MULTIPOINT (10 10, 20 20, 30 30)"),
     (stc.ST_PointFromText, ("single_point", lambda: f.lit(',')), "constructor", "", "POINT (0 1)"),
+    (stc.ST_PointFromWKB, ("wkbPoint",), "constructor", "", "POINT (10 15)"),
     (stc.ST_MakePoint, ("x", "y", "z"), "constructor", "", "POINT Z (0 1 2)"),
+    (stc.ST_MakePointM, ("x", "y", "z"), "constructor", "ST_AsText(geom)", "POINT M(0 1 2)"),
     (stc.ST_PolygonFromEnvelope, ("minx", "miny", "maxx", "maxy"), "min_max_x_y", "", "POLYGON ((0 1, 0 3, 2 3, 2 1, 0 1))"),
     (stc.ST_PolygonFromEnvelope, (0.0, 1.0, 2.0, 3.0), "null", "", "POLYGON ((0 1, 0 3, 2 3, 2 1, 0 1))"),
     (stc.ST_PolygonFromText, ("multiple_point", lambda: f.lit(',')), "constructor", "", "POLYGON ((0 0, 1 0, 1 1, 0 0))"),
+    (stc.ST_GeomCollFromText, ("collection",), "constructor", "", "GEOMETRYCOLLECTION (POINT (1 1), LINESTRING (0 0, 1 1))"),
+    (stc.ST_GeomCollFromText, ("collection", 4326), "constructor", "ST_SRID(geom)", 4326),
 
     # functions
     (stf.GeometryType, ("line",), "linestring_geom", "", "LINESTRING"),
     (stf.ST_3DDistance, ("a", "b"), "two_points", "", 5.0),
     (stf.ST_Affine, ("geom", 1.0, 2.0, 1.0, 2.0, 1.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0), "square_geom", "", "POLYGON ((2 3, 4 5, 5 6, 3 4, 2 3))"),
     (stf.ST_Affine, ("geom", 1.0, 2.0, 1.0, 2.0, 1.0, 2.0,), "square_geom", "", "POLYGON ((2 3, 4 5, 5 6, 3 4, 2 3))"),
+    (stf.ST_AddMeasure, ("line", 10.0, 40.0), "linestring_geom", "ST_AsText(geom)", "LINESTRING M(0 0 10, 1 0 16, 2 0 22, 3 0 28, 4 0 34, 5 0 40)"),
     (stf.ST_AddPoint, ("line", lambda: f.expr("ST_Point(1.0, 1.0)")), "linestring_geom", "", "LINESTRING (0 0, 1 0, 2 0, 3 0, 4 0, 5 0, 1 1)"),
     (stf.ST_AddPoint, ("line", lambda: f.expr("ST_Point(1.0, 1.0)"), 1), "linestring_geom", "", "LINESTRING (0 0, 1 1, 1 0, 2 0, 3 0, 4 0, 5 0)"),
     (stf.ST_Angle, ("p1", "p2", "p3", "p4", ), "four_points", "", 0.4048917862850834),
@@ -78,8 +89,11 @@ test_configurations = [
     (stf.ST_AreaSpheroid, ("point",), "point_geom", "", 0.0),
     (stf.ST_AsBinary, ("point",), "point_geom", "", "01010000000000000000000000000000000000f03f"),
     (stf.ST_AsEWKB, (lambda: f.expr("ST_SetSRID(point, 3021)"),), "point_geom", "", "0101000020cd0b00000000000000000000000000000000f03f"),
+    (stf.ST_AsHEXEWKB, ("point",), "point_geom", "", "01010000000000000000000000000000000000F03F"),
     (stf.ST_AsEWKT, (lambda: f.expr("ST_SetSRID(point, 4326)"),), "point_geom", "", "SRID=4326;POINT (0 1)"),
     (stf.ST_AsGeoJSON, ("point",), "point_geom", "", "{\"type\":\"Point\",\"coordinates\":[0.0,1.0]}"),
+    (stf.ST_AsGeoJSON, ("point", lambda: f.lit("feature")), "point_geom", "", "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[0.0,1.0]},\"properties\":{}}"),
+    (stf.ST_AsGeoJSON, ("point", lambda: f.lit("featurecollection")), "point_geom", "", "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[0.0,1.0]},\"properties\":{}}]}"),
     (stf.ST_AsGML, ("point",), "point_geom", "", "<gml:Point>\n  <gml:coordinates>\n    0.0,1.0 \n  </gml:coordinates>\n</gml:Point>\n"),
     (stf.ST_AsKML, ("point",), "point_geom", "", "<Point>\n  <coordinates>0.0,1.0</coordinates>\n</Point>\n"),
     (stf.ST_AsText, ("point",), "point_geom", "", "POINT (0 1)"),
@@ -107,18 +121,28 @@ test_configurations = [
     (stf.ST_DistanceSpheroid, ("point", "point"), "point_geom", "", 0.0),
     (stf.ST_DistanceSphere, ("point", "point"), "point_geom", "", 0.0),
     (stf.ST_DistanceSphere, ("point", "point", 6378137.0), "point_geom", "", 0.0),
+    (stf.ST_DelaunayTriangles, ("multipoint", ), "multipoint_geom", "", "GEOMETRYCOLLECTION (POLYGON ((10 40, 20 20, 40 30, 10 40)), POLYGON ((40 30, 20 20, 30 10, 40 30)))"),
     (stf.ST_Dump, ("geom",), "multipoint", "", ["POINT (0 0)", "POINT (1 1)"]),
     (stf.ST_DumpPoints, ("line",), "linestring_geom", "", ["POINT (0 0)", "POINT (1 0)", "POINT (2 0)", "POINT (3 0)", "POINT (4 0)", "POINT (5 0)"]),
     (stf.ST_EndPoint, ("line",), "linestring_geom", "", "POINT (5 0)"),
     (stf.ST_Envelope, ("geom",), "triangle_geom", "", "POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))"),
+    (stf.ST_Expand, ("geom", 2.0), "triangle_geom", "", "POLYGON ((-2 -2, -2 3, 3 3, 3 -2, -2 -2))"),
+    (stf.ST_Expand, ("geom", 2.0, 2.0), "triangle_geom", "", "POLYGON ((-2 -2, -2 3, 3 3, 3 -2, -2 -2))"),
     (stf.ST_ExteriorRing, ("geom",), "triangle_geom", "", "LINESTRING (0 0, 1 0, 1 1, 0 0)"),
     (stf.ST_FlipCoordinates, ("point",), "point_geom", "", "POINT (1 0)"),
     (stf.ST_Force_2D, ("point",), "point_geom", "", "POINT (0 1)"),
     (stf.ST_Force3D, ("point", 1.0), "point_geom", "", "POINT Z (0 1 1)"),
+    (stf.ST_Force3DM, ("point", 1.0), "point_geom", "ST_AsText(geom)", "POINT M(0 1 1)"),
+    (stf.ST_Force3DZ, ("point", 1.0), "point_geom", "", "POINT Z (0 1 1)"),
+    (stf.ST_Force4D, ("point", 1.0, 1.0), "point_geom", "ST_AsText(geom)", "POINT ZM(0 1 1 1)"),
+    (stf.ST_ForceCollection, ("multipoint",), "multipoint_geom", "ST_NumGeometries(geom)", 4),
     (stf.ST_ForcePolygonCW, ("geom",), "geom_with_hole", "", "POLYGON ((0 0, 3 3, 3 0, 0 0), (1 1, 2 1, 2 2, 1 1))"),
     (stf.ST_ForcePolygonCCW, ("geom",), "geom_with_hole", "", "POLYGON ((0 0, 3 0, 3 3, 0 0), (1 1, 2 2, 2 1, 1 1))"),
+    (stf.ST_ForceRHR, ("geom",), "geom_with_hole", "", "POLYGON ((0 0, 3 3, 3 0, 0 0), (1 1, 2 1, 2 2, 1 1))"),
     (stf.ST_FrechetDistance, ("point", "line",), "point_and_line", "", 5.0990195135927845),
     (stf.ST_GeometricMedian, ("multipoint",), "multipoint_geom", "", "POINT (22.500002656424286 21.250001168173426)"),
+    (stf.ST_GeneratePoints, ("geom", 15), "square_geom", "ST_NumGeometries(geom)", 15),
+    (stf.ST_GeneratePoints, ("geom", 15, 100), "square_geom", "ST_NumGeometries(geom)", 15),
     (stf.ST_GeometryN, ("geom", 0), "multipoint", "", "POINT (0 0)"),
     (stf.ST_GeometryType, ("point",), "point_geom", "", "ST_Point"),
     (stf.ST_HausdorffDistance, ("point", "line",), "point_and_line", "", 5.0990195135927845),
@@ -131,21 +155,40 @@ test_configurations = [
     (stf.ST_IsPolygonCCW, ("geom",), "geom_with_hole", "", True),
     (stf.ST_IsRing, ("line",), "linestring_geom", "", False),
     (stf.ST_IsSimple, ("geom",), "triangle_geom", "", True),
+    (stf.ST_IsValidTrajectory, ("line",), "4D_line", "", False),
     (stf.ST_IsValid, ("geom",), "triangle_geom", "", True),
     (stf.ST_IsValid, ("geom", 1), "triangle_geom", "", True),
     (stf.ST_IsValid, ("geom", 0), "triangle_geom", "", True),
+    (stf.ST_IsValidDetail, ("geom",), "triangle_geom", "", Row(valid=True, reason=None, location=None).asDict()),
+    (stf.ST_IsValidDetail, ("geom", 1), "triangle_geom", "", Row(valid=True, reason=None, location=None).asDict()),
     (stf.ST_Length, ("line",), "linestring_geom", "", 5.0),
+    (stf.ST_Length2D, ("line",), "linestring_geom", "", 5.0),
     (stf.ST_LengthSpheroid, ("point",), "point_geom", "", 0.0),
     (stf.ST_LineFromMultiPoint, ("multipoint",), "multipoint_geom", "", "LINESTRING (10 40, 40 30, 20 20, 30 10)"),
     (stf.ST_LineInterpolatePoint, ("line", 0.5), "linestring_geom", "", "POINT (2.5 0)"),
     (stf.ST_LineLocatePoint, ("line", "point"), "line_and_point", "", 0.5),
     (stf.ST_LineMerge, ("geom",), "multiline_geom", "", "LINESTRING (0 0, 1 0, 1 1, 0 0)"),
     (stf.ST_LineSubstring, ("line", 0.5, 1.0), "linestring_geom", "", "LINESTRING (2.5 0, 3 0, 4 0, 5 0)"),
+    (stf.ST_LongestLine, ("geom", "geom"), "geom_collection", "", "LINESTRING (0 0, 1 0)"),
+    (stf.ST_LocateAlong, ("line", 1.0), "4D_line", "ST_AsText(geom)", "MULTIPOINT ZM((1 1 1 1))"),
+    (stf.ST_LocateAlong, ("line", 1.0, 2.0), "4D_line", "ST_AsText(geom)", "MULTIPOINT ZM((-0.4142135623730949 2.414213562373095 1 1), (2.414213562373095 -0.4142135623730949 1 1))"),
+    (stf.ST_HasZ, ("a",), "two_points", "", True),
+    (stf.ST_HasM, ("point",), "4D_point", "", True),
+    (stf.ST_M, ("point",), "4D_point", "", 4.0),
+    (stf.ST_MMin, ("line",), "4D_line", "", -1.0),
+    (stf.ST_MMax, ("line",), "4D_line", "", 3.0),
     (stf.ST_MakeValid, ("geom",), "invalid_geom", "", "MULTIPOLYGON (((1 5, 3 3, 1 1, 1 5)), ((5 3, 7 5, 7 1, 5 3)))"),
     (stf.ST_MakeLine, ("line1", "line2"), "two_lines", "", "LINESTRING (0 0, 1 1, 0 0, 3 2)"),
+    (stf.ST_MaximumInscribedCircle, ("geom",), "triangle_geom", "ST_AsText(geom.center)", "POINT (0.70703125 0.29296875)"),
+    (stf.ST_MaximumInscribedCircle, ("geom",), "triangle_geom", "ST_AsText(geom.nearest)", "POINT (0.5 0.5)"),
+    (stf.ST_MaximumInscribedCircle, ("geom",), "triangle_geom", "geom.radius", 0.2927864015850548),
+    (stf.ST_MaxDistance, ("a", "b"), "overlapping_polys", "", 3.1622776601683795),
+    (stf.ST_Points, ("line",), "linestring_geom", "ST_Normalize(geom)", "MULTIPOINT (0 0, 1 0, 2 0, 3 0, 4 0, 5 0)"),
     (stf.ST_Polygon, ("geom", 4236), "closed_linestring_geom", "", "POLYGON ((0 0, 1 0, 1 1, 0 0))"),
     (stf.ST_Polygonize, ("geom",), "noded_linework", "ST_Normalize(geom)", "GEOMETRYCOLLECTION (POLYGON ((0 2, 1 3, 2 4, 2 3, 2 2, 1 2, 0 2)), POLYGON ((2 2, 2 3, 2 4, 3 3, 4 2, 3 2, 2 2)))"),
     (stf.ST_MakePolygon, ("geom",), "closed_linestring_geom", "", "POLYGON ((0 0, 1 0, 1 1, 0 0))"),
+    (stf.ST_MinimumClearance, ("geom",), "invalid_geom", "", 2.0),
+    (stf.ST_MinimumClearanceLine, ("geom",), "invalid_geom", "", "LINESTRING (5 3, 3 3)"),
     (stf.ST_MinimumBoundingCircle, ("line", 8), "linestring_geom", "ST_ReducePrecision(geom, 2)", "POLYGON ((4.95 -0.49, 4.81 -0.96, 4.58 -1.39, 4.27 -1.77, 3.89 -2.08, 3.46 -2.31, 2.99 -2.45, 2.5 -2.5, 2.01 -2.45, 1.54 -2.31, 1.11 -2.08, 0.73 -1.77, 0.42 -1.39, 0.19 -0.96, 0.05 -0.49, 0 0, 0.05 0.49, 0.19 0.96, 0.42 1.39, 0.73 1.77, 1.11 2.08, 1.54 2.31, 2.01 2.45, 2.5 2.5, 2.99 2.45, 3.46 2.31, 3.89 2.08, 4.27 1.77, 4.58 1.39, 4.81 0.96, 4.95 0.49, 5 0, 4.95 -0.49))"),
     (stf.ST_MinimumBoundingCircle, ("line", 2), "linestring_geom", "ST_ReducePrecision(geom, 2)", "POLYGON ((4.27 -1.77, 2.5 -2.5, 0.73 -1.77, 0 0, 0.73 1.77, 2.5 2.5, 4.27 1.77, 5 0, 4.27 -1.77))"),
     (stf.ST_MinimumBoundingRadius, ("line",), "linestring_geom", "", {"center": "POINT (2.5 0)", "radius": 2.5}),
@@ -155,18 +198,25 @@ test_configurations = [
     (stf.ST_NRings, ("geom",), "square_geom", "", 1),
     (stf.ST_NumGeometries, ("geom",), "multipoint", "", 2),
     (stf.ST_NumInteriorRings, ("geom",), "geom_with_hole", "", 1),
+    (stf.ST_NumInteriorRing, ("geom",), "geom_with_hole", "", 1),
     (stf.ST_NumPoints, ("line",), "linestring_geom", "", 6),
     (stf.ST_PointN, ("line", 2), "linestring_geom", "", "POINT (1 0)"),
     (stf.ST_PointOnSurface, ("line",), "linestring_geom", "", "POINT (2 0)"),
     (stf.ST_ReducePrecision, ("geom", 1), "precision_reduce_point", "", "POINT (0.1 0.2)"),
     (stf.ST_RemovePoint, ("line", 1), "linestring_geom", "", "LINESTRING (0 0, 2 0, 3 0, 4 0, 5 0)"),
     (stf.ST_Reverse, ("line",), "linestring_geom", "", "LINESTRING (5 0, 4 0, 3 0, 2 0, 1 0, 0 0)"),
+    (stf.ST_RotateX, ("line", 10.0), "4D_line", "ST_ReducePrecision(geom, 2)", "LINESTRING Z (1 -0.3 -1.383092639965822, 2 -0.59 -2.766185279931644, 3 -0.89 -4.149277919897466, -1 0.3 1.383092639965822)"),
+    (stf.ST_Rotate, ("line", 10.0), "linestring_geom", "ST_ReducePrecision(geom, 2)", "LINESTRING (0 0, -0.84 -0.54, -1.68 -1.09, -2.52 -1.63, -3.36 -2.18, -4.2 -2.72)"),
+    (stf.ST_Rotate, ("line", 10.0, 0.0, 0.0), "linestring_geom", "ST_ReducePrecision(geom, 2)", "LINESTRING (0 0, -0.84 -0.54, -1.68 -1.09, -2.52 -1.63, -3.36 -2.18, -4.2 -2.72)"),
     (stf.ST_S2CellIDs, ("point", 30), "point_geom", "", [1153451514845492609]),
     (stf.ST_S2ToGeom, (lambda: f.expr("array(1154047404513689600)"),), "null", "ST_ReducePrecision(geom[0], 5)", "POLYGON ((0 2.46041, 2.46041 2.46041, 2.46041 0, 0 0, 0 2.46041))"),
     (stf.ST_SetPoint, ("line", 1, lambda: f.expr("ST_Point(1.0, 1.0)")), "linestring_geom", "", "LINESTRING (0 0, 1 1, 2 0, 3 0, 4 0, 5 0)"),
     (stf.ST_SetSRID, ("point", 3021), "point_geom", "ST_SRID(geom)", 3021),
     (stf.ST_ShiftLongitude, ("geom",), "triangle_geom", "", "POLYGON ((0 0, 1 0, 1 1, 0 0))"),
     (stf.ST_SimplifyPreserveTopology, ("geom", 0.2), "0.9_poly", "", "POLYGON ((0 0, 1 0, 1 1, 0 0))"),
+    (stf.ST_SimplifyVW, ("geom", 0.1), "0.9_poly", "", "POLYGON ((0 0, 1 0, 1 1, 0 0))"),
+    (stf.ST_SimplifyPolygonHull, ("geom", 0.3, False), "polygon_unsimplified", "", "POLYGON ((30 10, 40 40, 10 20, 30 10))"),
+    (stf.ST_SimplifyPolygonHull, ("geom", 0.3), "polygon_unsimplified", "", "POLYGON ((30 10, 15 15, 10 20, 20 40, 45 45, 30 10))"),
     (stf.ST_Snap, ("poly", "line", 2.525), "poly_and_line", "" ,"POLYGON ((2.6 12.5, 2.6 20, 12.6 20, 12.6 12.5, 10.1 10, 2.6 12.5))"),
     (stf.ST_Split, ("line", "points"), "multipoint_splitting_line", "", "MULTILINESTRING ((0 0, 0.5 0.5), (0.5 0.5, 1 1), (1 1, 1.5 1.5, 2 2))"),
     (stf.ST_SRID, ("point",), "point_geom", "", 0),
@@ -176,8 +226,10 @@ test_configurations = [
     (stf.ST_SymDifference, ("a", "b"), "overlapping_polys", "", "MULTIPOLYGON (((1 0, 0 0, 0 1, 1 1, 1 0)), ((2 0, 2 1, 3 1, 3 0, 2 0)))"),
     (stf.ST_Transform, ("point", lambda: f.lit("EPSG:4326"), lambda: f.lit("EPSG:32649")), "point_geom", "ST_ReducePrecision(geom, 2)", "POINT (-34870890.91 1919456.06)"),
     (stf.ST_Translate, ("geom", 1.0, 1.0,), "square_geom", "", "POLYGON ((2 1, 2 2, 3 2, 3 1, 2 1))"),
+    (stf.ST_TriangulatePolygon, ("geom",), "square_geom", "", "GEOMETRYCOLLECTION (POLYGON ((1 0, 1 1, 2 1, 1 0)), POLYGON ((2 1, 2 0, 1 0, 2 1)))"),
     (stf.ST_Union, ("a", "b"), "overlapping_polys", "", "POLYGON ((1 0, 0 0, 0 1, 1 1, 2 1, 3 1, 3 0, 2 0, 1 0))"),
     (stf.ST_Union, ("polys",), "array_polygons", "", "POLYGON ((2 3, 3 3, 3 -3, -3 -3, -3 3, -2 3, -2 4, 2 4, 2 3))"),
+    (stf.ST_UnaryUnion, ("geom",), "overlapping_mPolys", "", "POLYGON ((10 0, 10 10, 0 10, 0 30, 20 30, 20 20, 30 20, 30 0, 10 0))"),
     (stf.ST_VoronoiPolygons, ("geom",), "multipoint", "", "GEOMETRYCOLLECTION (POLYGON ((-1 -1, -1 2, 2 -1, -1 -1)), POLYGON ((-1 2, 2 2, 2 -1, -1 2)))"),
     (stf.ST_X, ("b",), "two_points", "", 3.0),
     (stf.ST_XMax, ("line",), "linestring_geom", "", 5.0),
@@ -186,6 +238,7 @@ test_configurations = [
     (stf.ST_YMax, ("geom",), "triangle_geom", "", 1.0),
     (stf.ST_YMin, ("geom",), "triangle_geom", "", 0.0),
     (stf.ST_Z, ("b",), "two_points", "", 4.0),
+    (stf.ST_Zmflag, ("b",), "two_points", "", 2),
     (stf.ST_IsValidReason, ("geom",), "triangle_geom", "", "Valid Geometry"),
     (stf.ST_IsValidReason, ("geom", 1), "triangle_geom", "", "Valid Geometry"),
 
@@ -198,6 +251,9 @@ test_configurations = [
     (stp.ST_OrderingEquals, ("line", lambda: f.expr("ST_Reverse(line)")), "linestring_geom", "", False),
     (stp.ST_Overlaps, ("a", "b"), "overlapping_polys", "", True),
     (stp.ST_Touches, ("a", "b"), "touching_polys", "", True),
+    (stp.ST_Relate, ("a", "b"), "touching_polys", "", "FF2F11212"),
+    (stp.ST_Relate, ("a", "b", lambda: f.lit("FF2F11212")), "touching_polys", "", True),
+    (stp.ST_RelateMatch, (lambda: f.lit("101202FFF"), lambda: f.lit("TTTTTTFFF")), "touching_polys", "", True),
     (stp.ST_Within, (lambda: f.expr("ST_Point(0.5, 0.25)"), "geom"), "triangle_geom", "", True),
     (stp.ST_Covers, ("geom", lambda: f.expr("ST_Point(0.5, 0.25)")), "triangle_geom", "", True),
     (stp.ST_CoveredBy, (lambda: f.expr("ST_Point(0.5, 0.25)"), "geom"), "triangle_geom", "", True),
@@ -211,7 +267,7 @@ test_configurations = [
     # aggregates
     (sta.ST_Envelope_Aggr, ("geom",), "exploded_points", "", "POLYGON ((0 0, 0 1, 1 1, 1 0, 0 0))"),
     (sta.ST_Intersection_Aggr, ("geom",), "exploded_polys", "", "LINESTRING (1 0, 1 1)"),
-    (sta.ST_Union_Aggr, ("geom",), "exploded_polys", "", "POLYGON ((1 0, 0 0, 0 1, 1 1, 2 1, 2 0, 1 0))"),
+    (sta.ST_Union_Aggr, ("geom",), "exploded_polys", "", "POLYGON ((0 0, 0 1, 1 1, 2 1, 2 0, 1 0, 0 0))"),
 ]
 
 wrong_type_configurations = [
@@ -224,29 +280,43 @@ wrong_type_configurations = [
     (stc.ST_GeomFromKML, (None,)),
     (stc.ST_GeomFromText, (None,)),
     (stc.ST_GeomFromWKB, (None,)),
+    (stc.ST_LinestringFromWKB, (None,)),
+    (stc.ST_GeomFromEWKB, (None,)),
     (stc.ST_GeomFromWKT, (None,)),
+    (stc.ST_GeometryFromText, (None,)),
     (stc.ST_LineFromText, (None,)),
     (stc.ST_LineStringFromText, (None, "")),
     (stc.ST_LineStringFromText, ("", None)),
     (stc.ST_Point, (None, "")),
     (stc.ST_Point, ("", None)),
+    (stc.ST_PointFromGeoHash, (None, 4)),
+    (stc.ST_PointFromGeoHash, (None,)),
     (stc.ST_PointFromText, (None, "")),
     (stc.ST_PointFromText, ("", None)),
+    (stc.ST_PointFromWKB, (None,)),
+    (stc.ST_MPointFromText, (None,)),
     (stc.ST_PolygonFromEnvelope, (None, "", "", "")),
     (stc.ST_PolygonFromEnvelope, ("", None, "", "")),
     (stc.ST_PolygonFromEnvelope, ("", "", None, "")),
     (stc.ST_PolygonFromEnvelope, ("", "", "", None)),
     (stc.ST_PolygonFromText, (None, "")),
     (stc.ST_PolygonFromText, ("", None)),
+    (stc.ST_PolygonFromText, (None, None)),
+    (stc.ST_PolygonFromText, ("", None)),
+    (stc.ST_MakePointM, (None, None, None)),
+    (stc.ST_MakePointM, (None, "", "")),
 
     # functions
     (stf.ST_3DDistance, (None, "")),
     (stf.ST_3DDistance, ("", None)),
+    (stf.ST_AddMeasure, (None, None, None)),
+    (stf.ST_AddMeasure, ("", None, "")),
     (stf.ST_AddPoint, (None, "")),
     (stf.ST_AddPoint, ("", None)),
     (stf.ST_Area, (None,)),
     (stf.ST_AsBinary, (None,)),
     (stf.ST_AsEWKB, (None,)),
+    (stf.ST_AsHEXEWKB, (None,)),
     (stf.ST_AsEWKT, (None,)),
     (stf.ST_AsGeoJSON, (None,)),
     (stf.ST_AsGML, (None,)),
@@ -271,17 +341,28 @@ wrong_type_configurations = [
     (stf.ST_Distance, ("", None)),
     (stf.ST_Dump, (None,)),
     (stf.ST_DumpPoints, (None,)),
+    (stf.ST_DelaunayTriangles, (None,)),
     (stf.ST_EndPoint, (None,)),
     (stf.ST_Envelope, (None,)),
+    (stf.ST_Expand, (None,"")),
+    (stf.ST_Expand, (None,None)),
+    (stf.ST_Expand, ("",None)),
     (stf.ST_ExteriorRing, (None,)),
     (stf.ST_FlipCoordinates, (None,)),
     (stf.ST_Force_2D, (None,)),
+    (stf.ST_Force3DM, (None,)),
+    (stf.ST_Force3DZ, (None,)),
+    (stf.ST_Force4D, (None,)),
+    (stf.ST_ForceCollection, (None,)),
     (stf.ST_ForcePolygonCW, (None,)),
     (stf.ST_ForcePolygonCCW, (None,)),
+    (stf.ST_ForceRHR, (None,)),
     (stf.ST_GeometryN, (None, 0)),
     (stf.ST_GeometryN, ("", None)),
     (stf.ST_GeometryN, ("", 0.0)),
     (stf.ST_GeometryType, (None,)),
+    (stf.ST_GeneratePoints, (None, 0.0)),
+    (stf.ST_GeneratePoints, ("", None)),
     (stf.ST_InteriorRingN, (None, 0)),
     (stf.ST_InteriorRingN, ("", None)),
     (stf.ST_InteriorRingN, ("", 0.0)),
@@ -293,9 +374,12 @@ wrong_type_configurations = [
     (stf.ST_IsPolygonCCW, (None,)),
     (stf.ST_IsRing, (None,)),
     (stf.ST_IsSimple, (None,)),
+    (stf.ST_IsValidTrajectory, (None,)),
+    (stf.ST_IsValidDetail, (None,)),
     (stf.ST_IsValid, (None,)),
     (stf.ST_IsValidReason, (None,)),
     (stf.ST_Length, (None,)),
+    (stf.ST_Length2D, (None,)),
     (stf.ST_LineFromMultiPoint, (None,)),
     (stf.ST_LineInterpolatePoint, (None, 0.5)),
     (stf.ST_LineInterpolatePoint, ("", None)),
@@ -305,8 +389,25 @@ wrong_type_configurations = [
     (stf.ST_LineSubstring, (None, 0.5, 1.0)),
     (stf.ST_LineSubstring, ("", None, 1.0)),
     (stf.ST_LineSubstring, ("", 0.5, None)),
+    (stf.ST_LongestLine, (None, "")),
+    (stf.ST_LongestLine, (None, None)),
+    (stf.ST_LongestLine, ("", None)),
+    (stf.ST_LocateAlong, (None, "")),
+    (stf.ST_LocateAlong, (None, None)),
+    (stf.ST_LocateAlong, ("", None)),
+    (stf.ST_HasZ, (None,)),
+    (stf.ST_HasM, (None,)),
+    (stf.ST_M, (None,)),
+    (stf.ST_MMin, (None,)),
+    (stf.ST_MMax, (None,)),
     (stf.ST_MakeValid, (None,)),
     (stf.ST_MakePolygon, (None,)),
+    (stf.ST_MaximumInscribedCircle, (None,)),
+    (stf.ST_MaxDistance, (None, None)),
+    (stf.ST_MaxDistance, (None, "")),
+    (stf.ST_MaxDistance, ("", None)),
+    (stf.ST_MinimumClearance, (None,)),
+    (stf.ST_MinimumClearanceLine, (None,)),
     (stf.ST_MinimumBoundingCircle, (None,)),
     (stf.ST_MinimumBoundingRadius, (None,)),
     (stf.ST_Multi, (None,)),
@@ -314,6 +415,7 @@ wrong_type_configurations = [
     (stf.ST_NPoints, (None,)),
     (stf.ST_NumGeometries, (None,)),
     (stf.ST_NumInteriorRings, (None,)),
+    (stf.ST_NumInteriorRing, (None,)),
     (stf.ST_PointN, (None, 2)),
     (stf.ST_PointN, ("", None)),
     (stf.ST_PointN, ("", 2.0)),
@@ -325,6 +427,8 @@ wrong_type_configurations = [
     (stf.ST_RemovePoint, ("", None)),
     (stf.ST_RemovePoint, ("", 1.0)),
     (stf.ST_Reverse, (None,)),
+    (stf.ST_Rotate, (None,None,)),
+    (stf.ST_Rotate, (None,None)),
     (stf.ST_S2CellIDs, (None, 2)),
     (stf.ST_S2ToGeom, (None,)),
     (stf.ST_SetPoint, (None, 1, "")),
@@ -336,6 +440,10 @@ wrong_type_configurations = [
     (stf.ST_ShiftLongitude, (None,)),
     (stf.ST_SimplifyPreserveTopology, (None, 0.2)),
     (stf.ST_SimplifyPreserveTopology, ("", None)),
+    (stf.ST_SimplifyVW, (None, 2)),
+    (stf.ST_SimplifyVW, ("", None)),
+    (stf.ST_SimplifyPolygonHull, ("", None)),
+    (stf.ST_SimplifyPolygonHull, (None, None)),
     (stf.ST_Snap, (None, None, 12)),
     (stf.ST_SRID, (None,)),
     (stf.ST_StartPoint, (None,)),
@@ -349,8 +457,10 @@ wrong_type_configurations = [
     (stf.ST_SymDifference, ("", None)),
     (stf.ST_Transform, (None, "", "")),
     (stf.ST_Transform, ("", None, "")),
+    (stf.ST_TriangulatePolygon, (None,)),
     (stf.ST_Union, (None, "")),
     (stf.ST_Union, (None,)),
+    (stf.ST_UnaryUnion, (None,)),
     (stf.ST_X, (None,)),
     (stf.ST_XMax, (None,)),
     (stf.ST_XMin, (None,)),
@@ -358,6 +468,7 @@ wrong_type_configurations = [
     (stf.ST_YMax, (None,)),
     (stf.ST_YMin, (None,)),
     (stf.ST_Z, (None,)),
+    (stf.ST_Zmflag, (None,)),
 
     # predicates
     (stp.ST_Contains, (None, "")),
@@ -376,6 +487,10 @@ wrong_type_configurations = [
     (stp.ST_Overlaps, ("", None)),
     (stp.ST_Touches, (None, "")),
     (stp.ST_Touches, ("", None)),
+    (stp.ST_Relate, (None, "")),
+    (stp.ST_Relate, ("", None)),
+    (stp.ST_RelateMatch, (None, "")),
+    (stp.ST_RelateMatch, ("", None)),
     (stp.ST_Within, (None, "")),
     (stp.ST_Within, ("", None)),
 
@@ -389,12 +504,16 @@ class TestDataFrameAPI(TestBase):
 
     @pytest.fixture
     def base_df(self, request):
+        wkbLine = '0102000000020000000000000084d600c00000000080b5d6bf00000060e1eff7bf00000080075de5bf'
+        wkbPoint = '010100000000000000000024400000000000002e40'
         wkb = '0102000000020000000000000084d600c00000000080b5d6bf00000060e1eff7bf00000080075de5bf'
         mpoly = 'MULTIPOLYGON(((0 0 ,20 0 ,20 20 ,0 20 ,0 0 ),(5 5 ,5 7 ,7 7 ,7 5 ,5 5)))'
         mline = 'MULTILINESTRING((1 2, 3 4), (4 5, 6 7))'
+        mpoint = 'MULTIPOINT ((10 10), (20 20), (30 30))'
         geojson = "{ \"type\": \"Feature\", \"properties\": { \"prop\": \"01\" }, \"geometry\": { \"type\": \"Point\", \"coordinates\": [ 0.0, 1.0 ] }},"
         gml_string = "<gml:LineString srsName=\"EPSG:4269\"><gml:coordinates>-71.16,42.25 -71.17,42.25 -71.18,42.25</gml:coordinates></gml:LineString>"
         kml_string = "<LineString><coordinates>-71.16,42.26 -71.17,42.26</coordinates></LineString>"
+        wktCollection = 'GEOMETRYCOLLECTION(POINT(1 1), LINESTRING(0 0, 1 1)))'
 
         if request.param == "constructor":
             return TestDataFrameAPI.spark.sql("SELECT null").selectExpr(
@@ -403,13 +522,17 @@ class TestDataFrameAPI(TestBase):
                 "2.0 AS z",
                 "'0.0,1.0' AS single_point",
                 "'0.0,0.0,1.0,0.0,1.0,1.0,0.0,0.0' AS multiple_point",
+                f"X'{wkbLine}' AS wkbLine",
+                f"X'{wkbPoint}' AS wkbPoint",
                 f"X'{wkb}' AS wkb",
                 f"'{mpoly}' AS mpoly",
                 f"'{mline}' AS mline",
+                f"'{mpoint}' AS mpoint",
                 f"'{geojson}' AS geojson",
                 "'s00twy01mt' AS geohash",
                 f"'{gml_string}' AS gml",
-                f"'{kml_string}' AS kml"
+                f"'{kml_string}' AS kml",
+                f"'{wktCollection}' AS collection"
             )
         elif request.param == "point_geom":
             return TestDataFrameAPI.spark.sql("SELECT ST_Point(0.0, 1.0) AS point")
@@ -421,6 +544,8 @@ class TestDataFrameAPI(TestBase):
             return TestDataFrameAPI.spark.sql("SELECT 'SRID=4269;LINESTRING (1 2, 3 4)' AS ewkt")
         elif request.param == "min_max_x_y":
             return TestDataFrameAPI.spark.sql("SELECT 0.0 AS minx, 1.0 AS miny, 2.0 AS maxx, 3.0 AS maxy")
+        elif request.param == "x_y_z_m_srid":
+            return TestDataFrameAPI.spark.sql("SELECT 1.0 AS x, 2.0 AS y, 3.0 AS z, 100.9 AS m, 4326 AS srid")
         elif request.param == "multipoint_geom":
             return TestDataFrameAPI.spark.sql("SELECT ST_GeomFromWKT('MULTIPOINT((10 40), (40 30), (20 20), (30 10))') AS multipoint")
         elif request.param == "null":
@@ -429,16 +554,24 @@ class TestDataFrameAPI(TestBase):
             return TestDataFrameAPI.spark.sql("SELECT ST_GeomFromWKT('POLYGON ((0 0, 1 0, 1 1, 0 0))') AS geom")
         elif request.param == "two_points":
             return TestDataFrameAPI.spark.sql("SELECT ST_PointZ(0.0, 0.0, 0.0) AS a, ST_PointZ(3.0, 0.0, 4.0) AS b")
+        elif request.param == "4D_point":
+            return TestDataFrameAPI.spark.sql("SELECT ST_GeomFromWKT('POINT ZM(1 2 3 4)') AS point")
+        elif request.param == "4D_line":
+            return TestDataFrameAPI.spark.sql("SELECT ST_GeomFromWKT('LINESTRING ZM(1 1 1 1, 2 2 2 2, 3 3 3 3, -1 -1 -1 -1)') AS line")
         elif request.param == "invalid_geom":
             return TestDataFrameAPI.spark.sql("SELECT ST_GeomFromWKT('POLYGON ((1 5, 1 1, 3 3, 5 3, 7 1, 7 5, 5 3, 3 3, 1 5))') AS geom")
         elif request.param == "overlapping_polys":
             return TestDataFrameAPI.spark.sql("SELECT ST_GeomFromWKT('POLYGON((0 0, 2 0, 2 1, 0 1, 0 0))') AS a, ST_GeomFromWKT('POLYGON((1 0, 3 0, 3 1, 1 1, 1 0))') AS b")
+        elif request.param == "overlapping_mPolys":
+            return TestDataFrameAPI.spark.sql("SELECT ST_GeomFromWKT('MULTIPOLYGON(((0 10,0 30,20 30,20 10,0 10)),((10 0,10 20,30 20,30 0,10 0)))') AS geom")
         elif request.param == "multipoint":
             return TestDataFrameAPI.spark.sql("SELECT ST_GeomFromWKT('MULTIPOINT ((0 0), (1 1))') AS geom")
         elif request.param == "geom_with_hole":
             return TestDataFrameAPI.spark.sql("SELECT ST_GeomFromWKT('POLYGON ((0 0, 3 0, 3 3, 0 0), (1 1, 2 2, 2 1, 1 1))') AS geom")
         elif request.param == "0.9_poly":
             return TestDataFrameAPI.spark.sql("SELECT ST_GeomFromWKT('POLYGON ((0 0, 1 0, 1 0.9, 1 1, 0 0))') AS geom")
+        elif request.param == "polygon_unsimplified":
+            return TestDataFrameAPI.spark.sql("SELECT ST_GeomFromWKT('POLYGON ((30 10, 40 40, 45 45, 20 40, 25 35, 10 20, 15 15, 30 10))') AS geom")
         elif request.param == "precision_reduce_point":
             return TestDataFrameAPI.spark.sql("SELECT ST_Point(0.12, 0.23) AS geom")
         elif request.param == "closed_linestring_geom":
