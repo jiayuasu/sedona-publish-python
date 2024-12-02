@@ -38,8 +38,9 @@ jobs:
         CIBW_ARCHS_MACOS: 'x86_64 arm64'
       with:
         package-dir: python
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
+        name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
         path: ./wheelhouse/*.whl
 
   build_sdist:
@@ -51,7 +52,7 @@ jobs:
       - name: Build sdist
         run: cd python && pipx run build --sdist
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           path: python/dist/*.tar.gz
 
@@ -61,15 +62,22 @@ jobs:
     # publish when a GitHub Release is created
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          # unpacks default artifact into dist/
-          # if `name: artifact` is omitted, the action will create extra parent dir
-          name: artifact
-          path: dist
+          # unpacks wheel files into artifacts/wheels
+          pattern: cibw-*
+          merge-multiple: false
+          path: artifacts/wheels
+      - name: Copy wheels to the dist folder
+        run: |
+          mkdir -p dist
+          for pattern in artifacts/wheels/cibw-wheels-macos-*/* artifacts/wheels/cibw-wheels-ubuntu-*/* artifacts/wheels/cibw-wheels-windows-*/*; do
+              cp -r $pattern dist 2>/dev/null || echo "No files matched $pattern"
+          done
+          echo "Content copied to dist."
 
       - uses: pypa/gh-action-pypi-publish@v1.5.0
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
-          # repository_url: https://test.pypi.org/legacy/ # to test
+          repository_url: https://test.pypi.org/legacy/ # to test
