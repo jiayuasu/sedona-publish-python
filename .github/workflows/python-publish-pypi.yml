@@ -54,6 +54,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: cibw-sdist
           path: python/dist/*.tar.gz
 
   upload_pypi:
@@ -64,18 +65,19 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          # unpacks wheel files into artifacts/wheels
+          # unpacks wheel files into artifacts
           pattern: cibw-*
           merge-multiple: false
-          path: artifacts/wheels
-      - name: Copy wheels to the dist folder
+          path: artifacts
+      - name: Copy everything to the dist folder
         run: |
           mkdir -p dist
-          for pattern in artifacts/wheels/cibw-wheels-macos-*/* artifacts/wheels/cibw-wheels-ubuntu-*/* artifacts/wheels/cibw-wheels-windows-*/*; do
+          for pattern in artifacts/cibw-sdist/* artifacts/cibw-wheels-macos-*/* artifacts/cibw-wheels-ubuntu-*/* artifacts/cibw-wheels-windows-*/*; do
               cp -r $pattern dist 2>/dev/null || echo "No files matched $pattern"
           done
           echo "Content copied to dist."
-
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - uses: pypa/gh-action-pypi-publish@v1.5.0
         with:
           user: __token__
