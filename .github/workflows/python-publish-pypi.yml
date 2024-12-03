@@ -76,8 +76,6 @@ jobs:
               cp -r $pattern dist 2>/dev/null || echo "No files matched $pattern"
           done
           echo "Content copied to dist."
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
       - uses: pypa/gh-action-pypi-publish@v1.5.0
         with:
           user: __token__
