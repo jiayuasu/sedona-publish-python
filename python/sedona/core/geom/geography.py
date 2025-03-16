@@ -15,4 +15,11 @@
 #  specific language governing permissions and limitations
 #  under the License.
 
-version = "1.7.1"
+from shapely.geometry.base import BaseGeometry
+
+
+class Geography:
+    geometry: BaseGeometry
+
+    def __init__(self, geometry: BaseGeometry):
+        self.geometry = geometry
