@@ -26,6 +26,7 @@ from sedona.spark import *
 from sedona.utils.decorators import classproperty
 
 SPARK_REMOTE = os.getenv("SPARK_REMOTE")
+EXTRA_JARS = os.getenv("SEDONA_PYTHON_EXTRA_JARS")
 
 from shapely import wkt
 from shapely.geometry.base import BaseGeometry
@@ -36,8 +37,12 @@ class TestBase:
     @classproperty
     def spark(self):
         if not hasattr(self, "__spark"):
+            # This lets a caller override the value of SPARK_HOME to just use whatever
+            # is provided by pyspark. Otherwise, export SPARK_HOME="" has no effect.
+            if "SPARK_HOME" in os.environ and not os.environ["SPARK_HOME"]:
+                del os.environ["SPARK_HOME"]
 
-            builder = SedonaContext.builder()
+            builder = SedonaContext.builder().appName("SedonaSparkTest")
             if SPARK_REMOTE:
                 builder = (
                     builder.remote(SPARK_REMOTE)
@@ -49,9 +54,21 @@ class TestBase:
                         "spark.sql.extensions",
                         "org.apache.sedona.sql.SedonaSqlExtensions",
                     )
+                    .config(
+                        "spark.sedona.stac.load.itemsLimitMax",
+                        "20",
+                    )
                 )
             else:
-                builder = builder.master("local[*]")
+                builder = builder.master("local[*]").config(
+                    "spark.sedona.stac.load.itemsLimitMax",
+                    "20",
+                )
+
+            # Allows the Sedona .jar to be explicitly set by the caller (e.g, to run
+            # pytest against a freshly-built development version of Sedona)
+            if EXTRA_JARS:
+                builder.config("spark.jars", EXTRA_JARS)
 
             spark = SedonaContext.create(builder.getOrCreate())
 
