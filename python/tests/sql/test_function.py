@@ -1,19 +1,19 @@
-#  Licensed to the Apache Software Foundation (ASF) under one
-#  or more contributor license agreements.  See the NOTICE file
-#  distributed with this work for additional information
-#  regarding copyright ownership.  The ASF licenses this file
-#  to you under the Apache License, Version 2.0 (the
-#  "License"); you may not use this file except in compliance
-#  with the License.  You may obtain a copy of the License at
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
 #
-#    http://www.apache.org/licenses/LICENSE-2.0
+#   http://www.apache.org/licenses/LICENSE-2.0
 #
-#  Unless required by applicable law or agreed to in writing,
-#  software distributed under the License is distributed on an
-#  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-#  KIND, either express or implied.  See the License for the
-#  specific language governing permissions and limitations
-#  under the License.
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
 
 import math
 from typing import List
@@ -34,7 +34,7 @@ from tests.sql.resource.sample_data import (
 )
 from tests.test_base import TestBase
 
-from sedona.sql.types import GeometryType
+from sedona.spark.sql.types import GeometryType
 
 
 class TestPredicateJoin(TestBase):
@@ -142,29 +142,6 @@ class TestPredicateJoin(TestBase):
         actual = function_df.take(1)[0][0]
         expected = "POLYGON ((9.999936528641255 10.000063012993312, 10.000000098210357 10.00012592862454, 10.000127040927849 9.999999902648744, 0.0000634713587459 -0.0000639979767969, -0.0000000982103557 -0.0001278970813952, -0.0001270409278476 0.0000000988678222, 9.999936528641255 10.000063012993312))"
         self.assert_geometry_almost_equal(expected, actual, 0.1)
-
-    def test_st_bestsrid(self):
-        polygon_from_wkt = (
-            self.spark.read.format("csv")
-            .option("delimiter", "\t")
-            .option("header", "false")
-            .load(mixed_wkt_geometry_input_location)
-        )
-
-        polygon_from_wkt.createOrReplaceTempView("polgontable")
-        polygon_from_wkt.show()
-
-        polygon_df = self.spark.sql(
-            "select ST_GeomFromWKT(polygontable._c0) as countyshape from polygontable"
-        )
-        polygon_df.createOrReplaceTempView("polygondf")
-        polygon_df.show()
-        function_df = self.spark.sql(
-            "select ST_BestSRID(polygondf.countyshape) from polygondf"
-        )
-        function_df.show()
-        actual = function_df.take(1)[0][0]
-        assert actual == 3395
 
     def test_st_bestsrid(self):
         polygon_from_wkt = (
@@ -616,7 +593,7 @@ class TestPredicateJoin(TestBase):
             == "POLYGON ((-3 -3, -3 3, 3 3, 3 -3, -3 -3), (-1 -1, 1 -1, 1 1, -1 1, -1 -1))"
         )
 
-    def test_st_difference_right_not_overlaps_left(self):
+    def test_st_difference_left_is_contained_by_right(self):
         test_table = self.spark.sql(
             "select ST_GeomFromWKT('POLYGON ((-1 -1, 1 -1, 1 1, -1 1, -1 -1))') as a,ST_GeomFromWKT('POLYGON ((-3 -3, 3 -3, 3 3, -3 3, -3 -3))') as b"
         )
@@ -1568,6 +1545,14 @@ class TestPredicateJoin(TestBase):
         # Then
         assert subdivided.count() == 16
 
+    def test_segmentize(self):
+        baseDf = self.spark.sql(
+            "SELECT ST_GeomFromWKT('POLYGON ((0 0, 0 8, 7.5 6, 15 4, 22.5 2, 30 0, 20 0, 10 0, 0 0))') AS poly"
+        )
+        actual = baseDf.selectExpr("ST_AsText(ST_Segmentize(poly, 10))").first()[0]
+        expected = "POLYGON ((0 0, 0 8, 7.5 6, 15 4, 22.5 2, 30 0, 20 0, 10 0, 0 0))"
+        assert expected == actual
+
     def test_st_has_z(self):
         baseDf = self.spark.sql(
             "SELECT ST_GeomFromWKT('POLYGON Z ((30 10 5, 40 40 10, 20 40 15, 10 20 20, 30 10 5))') as poly"
@@ -1967,14 +1952,10 @@ class TestPredicateJoin(TestBase):
         )
 
         # then result should be as expected
-        assert set(
-            [
-                el[0]
-                for el in geometry_df_collected.selectExpr(
-                    "ST_AsText(collected)"
-                ).collect()
-            ]
-        ) == {
+        assert {
+            el[0]
+            for el in geometry_df_collected.selectExpr("ST_AsText(collected)").collect()
+        } == {
             "MULTILINESTRING ((1 2, 3 4), (3 4, 4 5))",
             "MULTIPOINT ((1 2), (-2 3))",
             "MULTIPOLYGON (((1 2, 1 4, 3 4, 3 2, 1 2)), ((0.5 0.5, 5 0, 5 5, 0 5, 0.5 0.5)))",
@@ -2000,14 +1981,10 @@ class TestPredicateJoin(TestBase):
         )
 
         # then result should be calculated
-        assert set(
-            [
-                el[0]
-                for el in geometry_df_collected.selectExpr(
-                    "ST_AsText(collected)"
-                ).collect()
-            ]
-        ) == {
+        assert {
+            el[0]
+            for el in geometry_df_collected.selectExpr("ST_AsText(collected)").collect()
+        } == {
             "MULTILINESTRING ((1 2, 3 4), (3 4, 4 5))",
             "MULTIPOINT ((1 2), (-2 3))",
             "MULTIPOLYGON (((1 2, 1 4, 3 4, 3 2, 1 2)), ((0.5 0.5, 5 0, 5 5, 0 5, 0.5 0.5)))",
@@ -2036,7 +2013,7 @@ class TestPredicateJoin(TestBase):
         }
         for input_geom, expected_geom in test_cases.items():
             reversed_geometry = self.spark.sql(
-                "select ST_AsText(ST_Reverse(ST_GeomFromText({})))".format(input_geom)
+                f"select ST_AsText(ST_Reverse(ST_GeomFromText({input_geom})))"
             )
             assert reversed_geometry.take(1)[0][0] == expected_geom
 
@@ -2134,7 +2111,7 @@ class TestPredicateJoin(TestBase):
 
         for input_geom, expected_geom in tests1.items():
             geom_2d = self.spark.sql(
-                "select ST_AsText(ST_Force_2D(ST_GeomFromText({})))".format(input_geom)
+                f"select ST_AsText(ST_Force_2D(ST_GeomFromText({input_geom})))"
             )
             assert geom_2d.take(1)[0][0] == expected_geom
 
@@ -2147,7 +2124,7 @@ class TestPredicateJoin(TestBase):
 
         for input_geom, expected_geom in tests1.items():
             geom_2d = self.spark.sql(
-                "select ST_AsText(ST_Force2D(ST_GeomFromText({})))".format(input_geom)
+                f"select ST_AsText(ST_Force2D(ST_GeomFromText({input_geom})))"
             )
             assert geom_2d.take(1)[0][0] == expected_geom
 
@@ -2171,7 +2148,7 @@ class TestPredicateJoin(TestBase):
 
         for input_geom, expected_geom in tests.items():
             areal_geom = self.spark.sql(
-                "select ST_AsText(ST_BuildArea(ST_GeomFromText({})))".format(input_geom)
+                f"select ST_AsText(ST_BuildArea(ST_GeomFromText({input_geom})))"
             )
             assert areal_geom.take(1)[0][0] == expected_geom
 
@@ -2244,7 +2221,7 @@ class TestPredicateJoin(TestBase):
         ]
         for input_geom in test_cases:
             cell_ids = self.spark.sql(
-                "select ST_S2CellIDs(ST_GeomFromText({}), 6)".format(input_geom)
+                f"select ST_S2CellIDs(ST_GeomFromText({input_geom}), 6)"
             ).take(1)[0][0]
             assert isinstance(cell_ids, list)
             assert isinstance(cell_ids[0], int)
@@ -2272,7 +2249,7 @@ class TestPredicateJoin(TestBase):
         ]
         for input_geom in test_cases:
             cell_ids = self.spark.sql(
-                "select ST_H3CellIDs(ST_GeomFromText({}), 6, true)".format(input_geom)
+                f"select ST_H3CellIDs(ST_GeomFromText({input_geom}), 6, true)"
             ).take(1)[0][0]
             assert isinstance(cell_ids, list)
             assert isinstance(cell_ids[0], int)
